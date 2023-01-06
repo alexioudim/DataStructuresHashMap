@@ -7,22 +7,22 @@ public class UniversalHashTable<K, V> implements Dictionary<K, V> {
 private static final int u = 32; // u = 32 bits
 private static int b = 4; // Starting with 4 
 private static int[][] M; // Matrix
-private static int sizeOfKeys = (int) Math.pow(2,b); //Size of the array that holds the keys which is 2^b
-private static String[] keys = new String[sizeOfKeys]; //Array that holds the keys
-    public UniversalHashTable() //Constructor that calls these methods when it's called
+private static int[] h_x; //Array for the hash function calculation
+private static int sum = 0; //Needed for h_x
+private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that holds the keys which is 2^b
+//private static Entry<K, V>[] T = new  Entry<K, V>[sizeOfArray]; //Array that holds the keys and their values
+        public UniversalHashTable() //Constructor that calls these methods when it's called
             {
-                 MatrixCreation(b);    
-                 HashFunction();
-                 
+                 MatrixCreation();  
+                   
             }
-        private void MatrixCreation(int b) //Creates the Matrix 
-        {           
-                    
+        private void MatrixCreation() //Creates the Matrix 
+        {                              
                     M = new int[b][u];
                     arrayFill(M); 
                     
         }
-        public void printM(int[][] M) //DELETE IN THE END
+        public void printM() //DELETE IN THE END
         {
          for (int i = 0; i < M.length; i++) {
             for (int j = 0; j < M[i].length; j++) {
@@ -34,24 +34,23 @@ private static String[] keys = new String[sizeOfKeys]; //Array that holds the ke
   
     private void arrayFill(int[][] M) //Fills the array with 0 and 1
     {
-        for (int i = 0; i < M.length; i++) {
-            
-            for (int j = 0; j < M[i].length; j++) {
-                M[i][j] = (int)(Math.random()*2); //*2 to get either 0 or 1
-            }
+    for (int[] M1 : M) {
+        for (int j = 0; j < M1.length; j++) {
+            M1[j] = (int)(Math.random()*2); //*2 to get either 0 or 1
         }
     }
+    }
     
-    private void HashFunction() 
+    private int HashFunction(K key) 
     {
-        String key = "car";
+        
         String binaryKey = toBinaryString(key.hashCode());
-        System.out.println(binaryKey);
         int[] X = new int[u]; //Create array with the key
         for (int i = 0;i<X.length;i++) //Fill it with 0 so we can fix it later
         {
             X[i] = 0;
         }
+        
         int[] tempX = new int[binaryKey.length()];  //Create array with the digits of the key (binary)
         for (int i = 0; i < binaryKey.length(); i++) {
         tempX[i] = binaryKey.charAt(i) - '0'; // This returns the ASCII value of the character.
@@ -64,15 +63,46 @@ private static String[] keys = new String[sizeOfKeys]; //Array that holds the ke
             }
             
         }
-        for (int i = 0;i<X.length;i++) //Fill it with 0 so we can fix it later
-        {
-          System.out.print(X[i] + " ");
+        h_x = new int[b];
+        for (int i = b-1; i >= 0; i--) 
+        {           
+            for (int j = 0; j < u; j++) 
+            {
+                int calc = M[i][j]*X[j];
+                if (sum == 0 && calc == 0) 
+                {
+                    sum = 0;
+                }
+                else if(sum == 0 && calc == 1) 
+                {
+                    sum = 1;
+                }
+                else if (sum == 1 && calc == 0) 
+                {
+                    sum = 1;
+                }
+                else if (sum == 1 && calc == 1)
+                {
+                    sum = 0;
+                }
+            }
+            h_x[i] = sum;
+            sum = 0;
         }
-
+         int res=0;
+         for(int i=h_x.length-1,exp=h_x.length-1;i>=0;i--,exp--)
+         {
+             res+=h_x[i]*Math.pow(10, exp); //Convert the array to an int
+         }
+         String res_str = Integer.toString(res); //Convert the result to string
+         res = Integer.parseInt(res_str,2); //Convert the string to int
+         return res;
     }
+    
 
     @Override
     public void put(K key, V value) {
+        HashFunction(key);
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -111,4 +141,26 @@ private static String[] keys = new String[sizeOfKeys]; //Array that holds the ke
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
+    
+    public static class EntryImpl<K,V> implements Dictionary.Entry<K,V>{
+        
+        private V value;
+        private K key;
+
+        public EntryImpl(K key, V value) {
+            this.value = value;
+            this.key = key;
+        }
+
+        @Override
+        public K getKey() {
+            return key;
+        }
+
+        @Override
+        public V getValue() {
+            return value;
+        }
+
+    }
 }

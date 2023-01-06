@@ -11,8 +11,8 @@ public class Main {
 
     public static void main(String args[]) {
 
-       //Dictionary<String, Integer> dict = new UniversalHashTable<>();
-       UniversalHashTable xd = new UniversalHashTable();
+       Dictionary<String, Integer> dict = new UniversalHashTable<>();
+      
        
         /*try {
             File fi = new File(args[0]);
