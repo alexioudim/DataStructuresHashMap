@@ -144,6 +144,104 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
         
         
     }
+    private void delete (K key) 
+    {
+        
+        if (!contains(key)) 
+        {
+            System.err.println("The key that you gave doesn't exist!");
+           
+        }
+        else 
+        {
+            while (true) //Check the array and if it matches the conditions end the loop with return;
+            {
+                int  j = iContains + 1;
+            if (iContains == size() - 1) 
+            {
+                j = 0;
+            }
+            
+            if (T[j] == null)  
+            {
+                T[iContains] = null;
+                return;
+            }
+            else if (HashFunction(T[j].getKey()) > iContains)
+            {
+                j++;
+            }
+            else 
+            {
+                T[iContains] = null;                
+                if (j == 0 ) 
+                {
+                    Entry <K,V> temp = T[j];
+                    T[j] = T[iContains];
+                    T[iContains] = temp;
+                    if (T[j+1] == null) 
+                    {
+                        return;
+                    }
+                    for (int i = 0; i < size() - 1; i++) 
+                {
+                    j = i+1;
+                    Entry <K,V> temp2 = T[j];
+                    T[j] = T[iContains];
+                    T[iContains] = temp2;
+                    if (T[j+1] == null) 
+                    {
+                        return;
+                    }
+                    
+                }
+                     
+                }
+                else 
+                {
+                    for (int i = iContains; i < size() - 1; i++) 
+                    {
+                        j = i + 1;
+                        Entry <K,V> temp3 = T[j];
+                        T[j] = T[i];
+                        T[i] = temp3;
+                        if (T[j+1] == null) 
+                        {
+                            return;
+                        }
+                    }
+                    Entry <K,V> temp4 = T[j];
+                    T[j] = T[j-1];
+                    T[j-1] = temp4;
+                    if (T[j+1] == null) 
+                    {
+                        return;
+                    }
+                    for (int i = 0; i < size() - 1; i++) 
+                {
+                    j = i+1;
+                    Entry <K,V> temp5 = T[j];
+                    T[j] = T[i];
+                    T[i] = temp5;
+                    if (T[j+1] == null) 
+                    {
+                        return;
+                    }
+                    
+                }
+                   
+                    
+                }  
+                
+               
+            }
+            }
+            
+            
+            
+        }
+        
+    }
     private void rehashIfNeeded() 
     {
         int size = 0;
@@ -164,9 +262,9 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
         }
         else 
         {
-            return;
+            return; //Do nothing
         }
-        Entry<K, V>[] tempT = (Entry<K,V>[])new Entry[sizeOfArray]; //Create this temporary array to hold the values of the old array
+        Entry<K, V>[] tempT = (Entry<K,V>[])new Entry[size()]; //Create this temporary array to hold the values of the old array
         for (int i = 0;i<size(); i++) 
         {
             if (T[i]!= null) 
@@ -195,7 +293,10 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
 
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        V value = get(key);
+        delete(key);
+        rehashIfNeeded();
+        return value;
     }
 
     @Override
