@@ -7,21 +7,33 @@ public class UniversalHashTable<K, V> implements Dictionary<K, V> {
 private static final int u = 32; // u = 32 bits
 private static int b = 4; // Starting with 4 
 private static int[][] M; // Matrix
+private static int iContains; //Counter for contains method to use it for the get(K key) method
 private static int[] h_x; //Array for the hash function calculation
 private static int sum = 0; //Needed for h_x
 private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that holds the keys which is 2^b
-//private static Entry<K, V>[] T = new  Entry<K, V>[sizeOfArray]; //Array that holds the keys and their values
+private Entry<K, V>[] T; //Array that holds the keys and their values
         public UniversalHashTable() //Constructor that calls these methods when it's called
             {
-                 MatrixCreation();  
+                 arraysCreation();  
                    
             }
-        private void MatrixCreation() //Creates the Matrix 
+        
+        private void arraysCreation() //Creates the Matrix 
         {                              
                     M = new int[b][u];
-                    arrayFill(M); 
-                    
+                    matrixFill(M); 
+                    T = (Entry<K,V>[])new Entry[sizeOfArray];
+                                    
         }
+       public void printT() 
+       {
+           for (int i =0; i < sizeOfArray; i++) 
+           {
+               if (T[i] != null) {System.out.println(T[i].getKey() + " value " + T[i].getValue());
+               System.out.println(" j " + i);}
+               
+           }
+       }
         public void printM() //DELETE IN THE END
         {
          for (int i = 0; i < M.length; i++) {
@@ -31,8 +43,9 @@ private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that h
              System.out.print("\n");
         }
         }
-  
-    private void arrayFill(int[][] M) //Fills the array with 0 and 1
+        
+    
+    private void matrixFill(int[][] M) //Fills the array with 0 and 1
     {
     for (int[] M1 : M) {
         for (int j = 0; j < M1.length; j++) {
@@ -99,11 +112,85 @@ private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that h
          return res;
     }
     
-
+    private void insert (K key, V value) 
+    {
+        int calc = HashFunction(key);
+        if (T[calc] == null) 
+        {
+            T[calc] = new EntryImpl<>(key,value);
+        }
+        else 
+        {
+            for (int i = calc; i <sizeOfArray; i++) 
+            {
+                if (T[i] == null) 
+            {
+                T[i] = new EntryImpl<>(key,value);
+                break;
+            }
+                else 
+                {
+                    for (int j =0; j < calc; i++) 
+                    {
+                        if (T[j] == null) 
+                        {
+                            T[j] = new EntryImpl<>(key,value);
+                            break;
+                        }                     
+                    }
+                }
+            }
+        }
+        
+        
+    }
+    private void rehashIfNeeded() 
+    {
+        int size = 0;
+        for (int i =0;i<size();i++) 
+        {
+            if (T[i] != null) 
+            {
+                size++;
+            }           
+        }      
+        if (size() - size <= 5) //If there are only 5 spots left in the HashMap 
+        {
+            b++; //Double the length of the array                  
+        }
+        else if (size < size() * 1/4) //If the size of the elements in the array are less than 25% of the size of the array 
+        {
+            b--; //Half the length of the array          
+        }
+        else 
+        {
+            return;
+        }
+        Entry<K, V>[] tempT = (Entry<K,V>[])new Entry[sizeOfArray]; //Create this temporary array to hold the values of the old array
+        for (int i = 0;i<size(); i++) 
+        {
+            if (T[i]!= null) 
+            {
+                tempT[i] = T[i];
+            }
+        }
+        sizeOfArray = (int) Math.pow(2,b); //Update the size of the array
+        arraysCreation(); //Create the arrays
+        
+        for (int i =0;i<tempT.length;i++) 
+        {
+            if (tempT[i] != null) 
+            {
+                insert(tempT[i].getKey(),tempT[i].getValue()); //Insert the data to the new array 
+            }
+        }
+        tempT = null; //Clearing the temporary array
+    }
     @Override
-    public void put(K key, V value) {
-        HashFunction(key);
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void put(K key, V value) {      
+        
+        insert(key,value);   
+        rehashIfNeeded();
     }
 
     @Override
@@ -113,32 +200,53 @@ private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that h
 
     @Override
     public V get(K key) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (contains(key)) 
+        {
+            return T[iContains].getValue();
+        }
+        return null;
     }
 
     @Override
     public boolean contains(K key) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        
+        for ( iContains = 0; iContains < size(); iContains ++) 
+        {
+            if (T[iContains].getKey().equals(key)) 
+            {
+                return true;              
+            }
+        }
+        return false;
     }
 
     @Override
     public boolean isEmpty() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        int size = 0;
+        for (int i =0;i<size();i++) 
+        {
+            if (T[i] == null) 
+            {
+                size++;
+            }
+        }
+        return size == size();
+     
     }
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return sizeOfArray;
     }
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        this.T = null; //Clear the array
     }
 
     @Override
     public Iterator<Entry<K, V>> iterator() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return new HashIterator();
     }
 
     
@@ -162,5 +270,19 @@ private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that h
             return value;
         }
 
+    }
+    private class HashIterator implements Iterator<Entry<K,V>> 
+    {
+
+        @Override
+        public boolean hasNext() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+
+        @Override
+        public Entry<K, V> next() {
+            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        }
+        
     }
 }

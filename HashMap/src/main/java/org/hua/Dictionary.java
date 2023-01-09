@@ -10,7 +10,7 @@ public interface Dictionary<K, V> extends Iterable<Dictionary.Entry<K, V>> {
     V get(K key);
 
     boolean contains(K key);
-
+    void printT(); //REMOVE LATER
     boolean isEmpty();
 
     int size();
