@@ -10,14 +10,10 @@ import org.hua.Dictionary.Entry;
 public class Main {
 
     public static void main(String args[]) {
-
+       String fileName = "data.txt";
        Dictionary<String, Integer> dict = new UniversalHashTable<>();
-   
-       
-      
-      
-        /*try {
-            File fi = new File(args[0]);
+        try {            
+            File fi = new File(fileName);
             Scanner scanner = new Scanner(fi);
             while (scanner.hasNext()) {
                 String line = scanner.nextLine();
@@ -25,22 +21,28 @@ public class Main {
                 while (st.hasMoreTokens()) {
                     String word = st.nextToken();
                     Integer curFreq = dict.get(word);
+
                     if (curFreq == null) {
                         curFreq = 1;
+
                     } else {
                         curFreq++;
+  
                     }
+
                     dict.put(word, curFreq);
+
+
                 }
             }
         } catch (FileNotFoundException e)
         {
-            System.err.println("File "+ args[0] + " not found");
+            System.err.println("File "+ fileName + " not found");
+            System.exit(1);
         }
-
         for(Entry<String, Integer> e: dict) {
             System.out.println("Word " + e.getKey() + " appeared " + e.getValue() + " times");
-        }*/
+        }
         
         
     }

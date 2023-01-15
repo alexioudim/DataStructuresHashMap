@@ -1,7 +1,10 @@
 package org.hua;
 import static java.lang.Integer.toBinaryString;
 import java.lang.Math;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class UniversalHashTable<K, V> implements Dictionary<K, V> {
 private static final int u = 32; // u = 32 bits
@@ -11,26 +14,36 @@ private static int iContains; //Counter for contains method to use it for the ge
 private static int[] h_x; //Array for the hash function calculation
 private static int sum = 0; //Needed for h_x
 private static int sizeOfArray = (int) Math.pow(2,b); //Size of the array that holds the keys which is 2^b
+private static final int DEFAULT_INITIAL_SIZE = sizeOfArray;
 private Entry<K, V>[] T; //Array that holds the keys and their values
         public UniversalHashTable() //Constructor that calls these methods when it's called
             {
+                 this(DEFAULT_INITIAL_SIZE);
                  arraysCreation();  
-                   
+                 
             }
-        
+         
+
+    @SuppressWarnings("unchecked")
+    public UniversalHashTable(int m) {
+        if( m<= 0) {
+            throw new IllegalArgumentException("Array Size must be Positive");
+        }      
+        T = (Entry<K,V>[])new Entry[m];
+             }
         private void arraysCreation() //Creates the Matrix 
         {                              
                     M = new int[b][u];
                     matrixFill(M); 
-                    T = (Entry<K,V>[])new Entry[sizeOfArray];
-                                    
+                    T = new Entry[sizeOfArray];
+                               
         }
        public void printT() 
        {
            for (int i =0; i < sizeOfArray; i++) 
            {
                if (T[i] != null) {System.out.println(T[i].getKey() + " value " + T[i].getValue());
-               System.out.println(" j " + i);}
+               }
                
            }
        }
@@ -102,51 +115,34 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
             h_x[i] = sum;
             sum = 0;
         }
-         int res=0;
+         long res=0;
          for(int i=h_x.length-1,exp=h_x.length-1;i>=0;i--,exp--)
          {
              res+=h_x[i]*Math.pow(10, exp); //Convert the array to an int
          }
-         String res_str = Integer.toString(res); //Convert the result to string
-         res = Integer.parseInt(res_str,2); //Convert the string to int
-         return res;
+         String res_str = Long.toString(res); //Convert the result to string
+         res = Long.parseLong(res_str,2);
+         return (int)res;
     }
     
-    private void insert (K key, V value) 
+     private void insert (K key, V value) 
     {
-        int calc = HashFunction(key);
-        if (T[calc] == null) 
+        int i = HashFunction(key);
+        while (T[i] != null) 
         {
-            T[calc] = new EntryImpl<>(key,value);
-        }
-        else 
-        {
-            for (int i = calc; i <sizeOfArray; i++) 
+            if (T[i].getKey().equals(key)) 
             {
-                if (T[i] == null) 
-            {
-                T[i] = new EntryImpl<>(key,value);
-                break;
+                Array.set(T, i, new EntryImpl<>(key,value));
+                return;
             }
-                else 
-                {
-                    for (int j =0; j < calc; i++) 
-                    {
-                        if (T[j] == null) 
-                        {
-                            T[j] = new EntryImpl<>(key,value);
-                            break;
-                        }                     
-                    }
-                }
-            }
+            i++;
+            i %= T.length; //Cycle the array if needed
         }
-        
+        Array.set(T, i, new EntryImpl<>(key,value));
         
     }
     private void delete (K key) 
-    {
-        
+    {   
         if (!contains(key)) 
         {
             System.err.println("The key that you gave doesn't exist!");
@@ -154,118 +150,91 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
         }
         else 
         {
-            while (true) //Check the array and if it matches the conditions end the loop with return;
+            while (true) 
             {
-                int  j = iContains + 1;
-            if (iContains == size() - 1) 
-            {
-                j = 0;
-            }
-            
-            if (T[j] == null)  
-            {
-                T[iContains] = null;
-                return;
-            }
-            else if (HashFunction(T[j].getKey()) > iContains)
-            {
-                j++;
-            }
-            else 
-            {
-                T[iContains] = null;                
+                int index = iContains;
+                int  j = index + 1;
+                if (index == T.length - 1) 
+                {
+                    j = 0;
+                }
+                T[index] = null;
+                if (T[j] == null) 
+                {
+                    return;
+                }
+                else if (HashFunction(T[j].getKey()) > index)
+                {
+                    j++;
+                }
+                 else 
+            {                              
                 if (j == 0 ) 
                 {
-                    Entry <K,V> temp = T[j];
-                    T[j] = T[iContains];
-                    T[iContains] = temp;
-                    if (T[j+1] == null) 
-                    {
-                        return;
-                    }
-                    for (int i = 0; i < size() - 1; i++) 
-                {
-                    j = i+1;
-                    Entry <K,V> temp2 = T[j];
-                    T[j] = T[iContains];
-                    T[iContains] = temp2;
-                    if (T[j+1] == null) 
-                    {
-                        return;
-                    }
                     
-                }
-                     
+                    Entry <K,V> temp = T[j];
+                    T[j] = T[index];
+                    T[index] = temp;  
+                    if (T[j+1] == null) 
+                    {
+                        return;
+                    }
+                    while (T[j+1] != null) 
+                    {
+                        index++;
+                        index %= T.length;
+                        j = index + 1;
+                        Entry <K,V> temp1 = T[j];
+                        T[j] = T[index];
+                        T[index] = temp1;
+                    }  
+                    return;
                 }
                 else 
-                {
-                    for (int i = iContains; i < size() - 1; i++) 
-                    {
-                        j = i + 1;
-                        Entry <K,V> temp3 = T[j];
-                        T[j] = T[i];
-                        T[i] = temp3;
-                        if (T[j+1] == null) 
-                        {
-                            return;
-                        }
-                    }
-                    Entry <K,V> temp4 = T[j];
-                    T[j] = T[j-1];
-                    T[j-1] = temp4;
+                {                  
+                    Entry <K,V> temp = T[j];
+                    T[j] = T[index];
+                    T[index] = temp;
                     if (T[j+1] == null) 
                     {
                         return;
                     }
-                    for (int i = 0; i < size() - 1; i++) 
-                {
-                    j = i+1;
-                    Entry <K,V> temp5 = T[j];
-                    T[j] = T[i];
-                    T[i] = temp5;
-                    if (T[j+1] == null) 
+                    while (T[j+1] != null) 
                     {
-                        return;
-                    }
-                    
-                }
-                   
-                    
+                        index++;
+                        index %= T.length;
+                        j = index + 1;
+                        Entry <K,V> temp1 = T[j];
+                        T[j] = T[index];
+                        T[index] = temp1;
+                    }  
+                    return;
                 }  
-                
-               
+    
             }
             }
-            
-            
-            
         }
         
     }
     private void rehashIfNeeded() 
     {
-        int size = 0;
-        for (int i =0;i<size();i++) 
+       
+        if (T.length - size() <= 5) //If there are only 5 spots left in the HashMap 
         {
-            if (T[i] != null) 
-            {
-                size++;
-            }           
-        }      
-        if (size() - size <= 5) //If there are only 5 spots left in the HashMap 
-        {
+         
             b++; //Double the length of the array                  
         }
-        else if (size < size() * 1/4) //If the size of the elements in the array are less than 25% of the size of the array 
+        else if (size() < T.length * 1/4 && T.length > 2*DEFAULT_INITIAL_SIZE) //If the size of the elements in the array are less than 25% of the size of the array 
         {
+            
             b--; //Half the length of the array          
         }
         else 
         {
-            return; //Do nothing
+                        return; //Do nothing
         }
-        Entry<K, V>[] tempT = (Entry<K,V>[])new Entry[size()]; //Create this temporary array to hold the values of the old array
-        for (int i = 0;i<size(); i++) 
+        Entry<K, V>[] tempT = new Entry[T.length]; //Create this temporary array to hold the values of the old array
+        for (int i = 0;i<T.length; i++) 
         {
             if (T[i]!= null) 
             {
@@ -286,24 +255,32 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
     }
     @Override
     public void put(K key, V value) {      
-        
-        insert(key,value);   
         rehashIfNeeded();
+        insert(key,value);   
+        
     }
 
     @Override
     public V remove(K key) {
         V value = get(key);
-        delete(key);
         rehashIfNeeded();
+        delete(key);
         return value;
     }
 
     @Override
     public V get(K key) {
-        if (contains(key)) 
-        {
-            return T[iContains].getValue();
+        int i = HashFunction(key);
+        while (T[i] != null) 
+        {   
+            if (T[i].getKey().equals(key)) 
+            {
+               iContains = i;
+               return T[i].getValue();
+            }
+            i++;
+            i %= T.length;
+            
         }
         return null;
     }
@@ -311,33 +288,34 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
     @Override
     public boolean contains(K key) {
         
-        for ( iContains = 0; iContains < size(); iContains ++) 
-        {
-            if (T[iContains].getKey().equals(key)) 
-            {
-                return true;              
-            }
-        }
-        return false;
+        return get(key) != null;
     }
 
     @Override
     public boolean isEmpty() {
         int size = 0;
-        for (int i =0;i<size();i++) 
+        for (int i =0;i<T.length;i++) 
         {
             if (T[i] == null) 
             {
                 size++;
             }
         }
-        return size == size();
+        return size == T.length;
      
     }
 
     @Override
     public int size() {
-        return sizeOfArray;
+         int size = 0;
+        for (int i =0;i<T.length;i++) 
+        {
+            if (T[i] != null) 
+            {
+                size++;
+            }              
+        }
+        return size;
     }
 
     @Override
@@ -347,8 +325,9 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
 
     @Override
     public Iterator<Entry<K, V>> iterator() {
-        return new HashIterator();
+         return new HashIterator();
     }
+
 
     
     public static class EntryImpl<K,V> implements Dictionary.Entry<K,V>{
@@ -372,18 +351,42 @@ private Entry<K, V>[] T; //Array that holds the keys and their values
         }
 
     }
-    private class HashIterator implements Iterator<Entry<K,V>> 
-    {
+  private class HashIterator implements Iterator<Entry<K, V>>{ 
 
-        @Override
+        private int i;
+
+        public HashIterator() {
+            
+            i = 0;
+        }
+
+       @Override
         public boolean hasNext() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            if (i == T.length - 1) 
+            {
+                return false;
+            }
+            if (T[i] != null) { // if the current isnt null then it has next
+                return true;
+            }
+            while (i<T.length - 1){ //checks the whole array
+                i++;
+                if (T[i] != null) {
+                    return true;
+                }
+
+            }
+            return false; //else it doesnt have next
         }
 
         @Override
         public Entry<K, V> next() {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            
+            return T[i++]; //returns all the array parts until the end
         }
-        
+
     }
 }
