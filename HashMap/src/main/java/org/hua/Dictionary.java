@@ -2,25 +2,23 @@ package org.hua;
 
 import java.util.Iterator;
 
-public interface Dictionary<K, V> extends Iterable<Dictionary.Entry<K, V>> {
-    void put(K key, V value);
+public interface Dictionary < K, V > extends Iterable < Dictionary.Entry < K, V >> {
+  void put(K key, V value);
 
-    V remove(K key);
+  V remove(K key);
 
-    V get(K key);
+  V get(K key);
 
-    boolean contains(K key);
-    boolean isEmpty();
-    void printT();
-    int size();
+  boolean contains(K key);
+  boolean isEmpty();
+  int size();
+  void clear();
 
-    void clear();
+  Iterator < Entry < K,V >> iterator();
 
-    Iterator<Entry<K, V>> iterator();
+  interface Entry < K,V > {
 
-    interface Entry<K, V> {
-
-        K getKey();
-        V getValue();
-    }
+    K getKey();
+    V getValue();
+  }
 }
