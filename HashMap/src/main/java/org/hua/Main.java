@@ -38,7 +38,7 @@ public class Main {
         } catch (FileNotFoundException e)
         {
             System.err.println("File "+ fileName + " not found");
-            System.exit(1);
+            System.exit(0);
         }
         for(Entry<String, Integer> e: dict) {
             System.out.println("Word " + e.getKey() + " appeared " + e.getValue() + " times");
